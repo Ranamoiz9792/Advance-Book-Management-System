@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from .models import User
+
 
 class SignupSerializer(serializers.Serializer):
     
@@ -38,3 +40,8 @@ class LoginSerializer(serializers.Serializer):
             raise serializers.ValidationError({'details': 'Password is required'})
         
         return data
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'name', 'email', 'phone_number', 'profile_image']

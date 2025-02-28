@@ -1,10 +1,14 @@
 from django.contrib.auth.hashers import make_password, check_password
 from django_redis import get_redis_connection  # Use Redis instead of Django's cache
 from rest_framework import status, viewsets
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from django.db.models import Count
 
+from AdvanceBookManagement.utils import JWTAuthentication
 from .models import User
+from PublishBooks.models import Book
 from .serializer import SignupSerializer, LoginSerializer
 from .utils import generate_otp, send_email, generate_email_body, generate_jwt_token
 
@@ -98,3 +102,23 @@ class LoginViewSet(viewsets.ViewSet):
             return Response({"details": "Login successful", "token": token}, status=status.HTTP_200_OK)
         else:
             return Response({"details": "Invalid password"}, status=status.HTTP_400_BAD_REQUEST)
+        
+
+class ProfileViewSet(viewsets.ViewSet):
+
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    def list(self, request):
+        user = request.user
+        total_likes = Book.objects.filter(published_by=user).aggregate(total_likes=Count('likes'))['total_likes'] or 0
+        books = Book.objects.filter(published_by=user).values('id', 'title', 'cover_image', 'pdf_content')
+
+        data = {
+            "name": user.name,
+            "profile_photo": request.build_absolute_uri(user.profile_image.url) if user.profile_image else None,
+            "total_likes_received": total_likes,
+            "books_shared": books.count(),
+            "books_published": list(books)
+        }
+        return Response(data)

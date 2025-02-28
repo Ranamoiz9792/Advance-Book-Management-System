@@ -20,5 +20,7 @@ class BookSerializer(serializers.ModelSerializer):
     
     def get_total_likes(self, obj):
         return obj.likes.count()
-    
+        
+    def get_liked_users(self, obj):
+        return obj.likes.values_list('user__username', flat=True)
  

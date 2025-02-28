@@ -22,4 +22,5 @@ urlpatterns = [
     path('',include('CustomUsers.urls')),
     path('',include('PublishBooks.urls')),
     path('',include('SocialFeatures.urls')),
+    path('',include('Friendship.urls')),
 ]
